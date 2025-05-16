@@ -5,10 +5,9 @@ import { Button } from '@/components/ui/button';
 
 interface HeaderProps {
   onViewAPIClick?: () => void;
-  onPricingClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onViewAPIClick, onPricingClick }) => {
+const Header: React.FC<HeaderProps> = ({ onViewAPIClick }) => {
   return (
     <header className="bg-background border-b border-border px-6 py-4 flex justify-between items-center">
       <div className="flex items-center space-x-2">
@@ -21,12 +20,6 @@ const Header: React.FC<HeaderProps> = ({ onViewAPIClick, onPricingClick }) => {
           onClick={onViewAPIClick}
         >
           View API
-        </Button>
-        <Button
-          variant="outline"
-          onClick={onPricingClick}
-        >
-          Pricing Options
         </Button>
       </div>
     </header>
