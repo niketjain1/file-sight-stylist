@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState } from "react";
 import {
   DocumentChunk,
   ChatResponse,
-  getSuggestedQuestions,
   DocumentResponse,
 } from "@/services/documentService";
 import { Button } from "@/components/ui/button";
@@ -15,10 +14,12 @@ import {
   MessageSquare,
   FileText,
   Layers,
+  Send,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Markdown } from "@/components/ui/markdown";
 import DocumentChat from "@/components/DocumentChat";
+import { Input } from "@/components/ui/input";
 
 interface DocumentContentProps {
   chunks: DocumentChunk[];
@@ -36,6 +37,7 @@ interface DocumentContentProps {
   processingError?: string | null;
   documentId?: string;
   documentData: DocumentResponse;
+  suggestedQuestions?: string[];
 }
 
 const DocumentContent: React.FC<DocumentContentProps> = ({
@@ -51,15 +53,17 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
   processingError = null,
   documentId,
   documentData,
+  suggestedQuestions = [],
 }) => {
   const selectedChunkRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<string>("parsed");
   const [viewMode, setViewMode] = useState<"blocks" | "combined">("blocks");
-  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([
-    "What information is included in this document?",
-    "What is the main topic of this document?",
-    "Can you summarize the key details?",
-  ]);
+  const [chatMessage, setChatMessage] = useState("");
+  const [chatMessages, setChatMessages] = useState<
+    { role: "user" | "assistant"; content: string }[]
+  >([]);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (selectedChunkId && selectedChunkRef.current) {
@@ -73,28 +77,18 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
   useEffect(() => {
     if (isChatActive) {
       setActiveTab("chat");
-      // Load suggested questions when chat becomes active
-      if (documentData) {
-        loadSuggestedQuestions();
-      }
     } else {
       setActiveTab("parsed");
     }
   }, [isChatActive, documentData]);
 
-  const loadSuggestedQuestions = async () => {
-    if (!documentData) return;
-
-    try {
-      const questions = await getSuggestedQuestions(documentData);
-      if (questions && questions.length > 0) {
-        setSuggestedQuestions(questions);
-      }
-    } catch (error) {
-      console.error("Error loading suggested questions:", error);
-      // Keep the default questions if there's an error
+  useEffect(() => {
+    // Scroll to bottom of chat when new messages are added
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
-  };
+  }, [chatMessages]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard
@@ -111,6 +105,100 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
+  };
+
+  const handleChatButtonClick = () => {
+    if (onChatWithDocument) {
+      onChatWithDocument();
+    }
+  };
+
+  const handleSendChatMessage = async () => {
+    if (!chatMessage.trim() || !onSendChatMessage) return;
+
+    // Add user message to chat
+    const userMessage = chatMessage.trim();
+    setChatMessages((prev) => [
+      ...prev,
+      { role: "user", content: userMessage },
+    ]);
+    setChatMessage("");
+    setIsSendingMessage(true);
+
+    try {
+      // Call the API to get response
+      const response = await onSendChatMessage(userMessage, documentData);
+
+      // Add assistant response to chat
+      if (response && response.message) {
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: response.message },
+        ]);
+      } else if (response && response.error) {
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: `Error: ${response.error}` },
+        ]);
+      } else {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: "Sorry, I couldn't process that request.",
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error("Error sending chat message:", error);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "An error occurred. Please try again.",
+        },
+      ]);
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
+
+  const handleSuggestedQuestionClick = (question: string) => {
+    setChatMessage(question);
+    // Optionally auto-send the question
+    if (onSendChatMessage) {
+      setChatMessages((prev) => [...prev, { role: "user", content: question }]);
+      setChatMessage("");
+      setIsSendingMessage(true);
+
+      onSendChatMessage(question, documentData)
+        .then((response) => {
+          if (response && response.message) {
+            setChatMessages((prev) => [
+              ...prev,
+              { role: "assistant", content: response.message },
+            ]);
+          } else if (response && response.error) {
+            setChatMessages((prev) => [
+              ...prev,
+              { role: "assistant", content: `Error: ${response.error}` },
+            ]);
+          }
+        })
+        .catch((error) => {
+          console.error("Error sending suggested question:", error);
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: "An error occurred. Please try again.",
+            },
+          ]);
+        })
+        .finally(() => {
+          setIsSendingMessage(false);
+        });
+    }
   };
 
   const renderContent = () => {

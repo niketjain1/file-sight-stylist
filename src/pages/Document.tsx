@@ -8,6 +8,7 @@ import {
   processDocument,
   parseDocument,
   chatWithDocument,
+  getSuggestedQuestions,
   DocumentChunk,
   DocumentResponse,
   ChatResponse,
@@ -40,6 +41,7 @@ const Document = () => {
   const [isChatActive, setIsChatActive] = useState(false);
   const [processingError, setProcessingError] = useState<string | null>(null);
   const [pageCount, setPageCount] = useState(1);
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
 
   // Sample example files data
   const exampleFiles: FileItem[] = [
@@ -196,8 +198,10 @@ const Document = () => {
   };
 
   const handleChatWithDocument = async () => {
-    if (!documentId) {
-      toast.error("No document ID available. Please process a document first.");
+    if (!documentData) {
+      toast.error(
+        "No document data available. Please process a document first."
+      );
       return;
     }
 
@@ -205,6 +209,20 @@ const Document = () => {
     setIsChatActive(!isChatActive);
 
     if (!isChatActive) {
+      // Load suggested questions when entering chat mode
+      try {
+        const questions = await getSuggestedQuestions(documentData);
+        setSuggestedQuestions(questions);
+      } catch (error) {
+        console.error("Error getting suggested questions:", error);
+        // Use default questions if API fails
+        setSuggestedQuestions([
+          "What is this document about?",
+          "Can you summarize the key points?",
+          "What information is present in this document?",
+        ]);
+      }
+
       toast.success(
         "Chat mode activated. You can now ask questions about the document."
       );
@@ -212,10 +230,9 @@ const Document = () => {
   };
 
   const handleSendChatMessage = async (
-    message: string,
-    docData: DocumentResponse
+    message: string
   ): Promise<ChatResponse> => {
-    if (!docData) {
+    if (!documentData) {
       toast.error(
         "No document data available. Please process a document first."
       );
@@ -223,8 +240,17 @@ const Document = () => {
     }
 
     try {
-      const response = await chatWithDocument(docData, message);
+      const response = await chatWithDocument(documentData, message);
       console.log("Chat response:", response);
+
+      // Update suggested questions from the response if available
+      if (
+        response.suggestedQuestions &&
+        response.suggestedQuestions.length > 0
+      ) {
+        setSuggestedQuestions(response.suggestedQuestions);
+      }
+
       return response;
     } catch (error) {
       console.error("Error chatting with document:", error);
@@ -269,40 +295,35 @@ const Document = () => {
 
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 overflow-hidden">
             {/* Document viewer */}
-            <div className="border-r border-border overflow-hidden flex flex-col">
-              {fileObjectUrl && (
-                <DocumentViewer
-                  documentUrl={fileObjectUrl}
-                  documentName={selectedFile?.name || "Document"}
-                  pageCount={pageCount}
-                  chunks={documentData?.chunks || []}
-                  isProcessing={isProcessing}
-                  processingError={processingError}
-                  highlightedChunkId={selectedChunkId}
-                  onChunkClick={handleChunkSelect}
-                />
-              )}
+            <div className="border-r border-border overflow-hidden">
+              <DocumentViewer
+                documentUrl={fileObjectUrl}
+                documentName={selectedFile?.name || ""}
+                pageCount={pageCount}
+                chunks={documentData?.chunks || []}
+                isProcessing={isProcessing}
+                processingError={processingError}
+                highlightedChunkId={selectedChunkId}
+                onChunkClick={handleChunkSelect}
+              />
             </div>
 
             {/* Document content */}
-            <div className="overflow-auto flex flex-col">
-              <DocumentContent
-                chunks={documentData?.chunks || []}
-                markdown={documentData?.markdown || ""}
-                isProcessing={isProcessing}
-                selectedChunkId={selectedChunkId}
-                onChunkSelect={handleChunkSelect}
-                onParseDocument={handleParseDocument}
-                onChatWithDocument={handleChatWithDocument}
-                onSendChatMessage={handleSendChatMessage}
-                isChatActive={isChatActive}
-                processingError={processingError}
-                documentId={documentId}
-                documentData={
-                  documentData || { markdown: "", chunks: [], pageCount: 1 }
-                }
-              />
-            </div>
+            <DocumentContent
+              chunks={documentData?.chunks || []}
+              markdown={documentData?.markdown || ""}
+              isProcessing={isProcessing}
+              selectedChunkId={selectedChunkId}
+              onChunkSelect={handleChunkSelect}
+              onParseDocument={handleParseDocument}
+              onChatWithDocument={handleChatWithDocument}
+              onSendChatMessage={handleSendChatMessage}
+              isChatActive={isChatActive}
+              processingError={processingError}
+              documentId={documentId}
+              documentData={documentData}
+              suggestedQuestions={suggestedQuestions}
+            />
           </div>
         </div>
       </div>
