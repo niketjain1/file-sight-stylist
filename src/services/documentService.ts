@@ -302,7 +302,7 @@ export const parseDocument = async (
 };
 
 export const chatWithDocument = async (
-  documentId: string,
+  documentData: DocumentResponse,
   message: string
 ): Promise<ChatResponse> => {
   try {
@@ -317,7 +317,7 @@ export const chatWithDocument = async (
         Authorization: `Basic ${apiKey}`,
       },
       body: JSON.stringify({
-        documentId,
+        documentData,
         message,
       }),
       credentials: "omit",
@@ -353,7 +353,7 @@ export const chatWithDocument = async (
 };
 
 export const getSuggestedQuestions = async (
-  documentId: string
+  documentData: DocumentResponse
 ): Promise<string[]> => {
   try {
     // Call the backend endpoint which will use Gemini API for suggestions
@@ -367,7 +367,7 @@ export const getSuggestedQuestions = async (
         Authorization: `Basic ${apiKey}`,
       },
       body: JSON.stringify({
-        documentId,
+        documentData,
       }),
       credentials: "omit",
     });
@@ -388,8 +388,8 @@ export const getSuggestedQuestions = async (
     return [
       "What is the main topic of this document?",
       "Can you summarize the key points?",
-      "Are there any tables or figures in this document?",
       "What data is presented in this document?",
+      "What are the main findings in this document?",
     ];
   }
 };

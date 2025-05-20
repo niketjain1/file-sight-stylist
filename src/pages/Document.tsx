@@ -212,15 +212,18 @@ const Document = () => {
   };
 
   const handleSendChatMessage = async (
-    message: string
+    message: string,
+    docData: DocumentResponse
   ): Promise<ChatResponse> => {
-    if (!documentId) {
-      toast.error("No document ID available. Please process a document first.");
-      return { message: "", error: "No document ID available" };
+    if (!docData) {
+      toast.error(
+        "No document data available. Please process a document first."
+      );
+      return { message: "", error: "No document data available" };
     }
 
     try {
-      const response = await chatWithDocument(documentId, message);
+      const response = await chatWithDocument(docData, message);
       console.log("Chat response:", response);
       return response;
     } catch (error) {
@@ -295,6 +298,9 @@ const Document = () => {
                 isChatActive={isChatActive}
                 processingError={processingError}
                 documentId={documentId}
+                documentData={
+                  documentData || { markdown: "", chunks: [], pageCount: 1 }
+                }
               />
             </div>
           </div>
