@@ -79,10 +79,76 @@ const createHeaders = (apiKey: string, contentType?: string) => {
   return headers;
 };
 
+// Clean up markdown content to remove HTML comments and fix table formatting
+const cleanMarkdownContent = (markdown: string): string => {
+  return markdown
+    .replace(/<!--.*?-->/g, "") // Remove HTML comments
+    .replace(/<\/?table>/g, "") // Remove table tags but keep the content
+    .replace(/<tr>\s*<th>/g, "| ") // Replace table row starts with markdown table syntax
+    .replace(/<\/th>\s*<th>/g, " | ") // Replace internal column separators
+    .replace(/<\/th>\s*<\/tr>/g, " |\n") // Replace row ends
+    .replace(/<tr>\s*<td>/g, "| ") // Replace data row starts
+    .replace(/<\/td>\s*<td>/g, " | ") // Replace internal data column separators
+    .replace(/<\/td>\s*<\/tr>/g, " |\n") // Replace data row ends
+    .replace(/\n{3,}/g, "\n\n"); // Replace excessive newlines
+};
+
+// Get Demo Form Data for "Loan Form" example
+const getLoanFormDemoData = async (): Promise<ApiResponse> => {
+  try {
+    // Fetch the demo_form.json file
+    const response = await fetch("/demo_form.json");
+    if (!response.ok) {
+      throw new Error("Failed to load demo form data");
+    }
+
+    const demoData = await response.json();
+
+    // Create a mock document ID
+    const mockDocumentId = "demo-loan-form-" + Date.now();
+
+    // Add document ID to the response
+    demoData.documentId = mockDocumentId;
+
+    // Ensure pageCount is set
+    if (!demoData.pageCount) {
+      demoData.pageCount = 1;
+    }
+
+    // Clean up markdown content
+    if (demoData.markdown) {
+      demoData.markdown = cleanMarkdownContent(demoData.markdown);
+    }
+
+    // Clean up chunks content
+    if (demoData.chunks && demoData.chunks.length) {
+      demoData.chunks = demoData.chunks.map((chunk) => {
+        if (chunk.text) {
+          chunk.text = cleanMarkdownContent(chunk.text);
+        }
+        return chunk;
+      });
+    }
+
+    return { data: demoData };
+  } catch (error) {
+    console.error("Error loading demo form data:", error);
+    throw error;
+  }
+};
+
 export const processDocument = async (
   file: File,
-  pages: string | null = null
+  pages: string | null = null,
+  isDemo: boolean = false,
+  demoType: string = ""
 ): Promise<ApiResponse> => {
+  // Check if this is a demo request for "Loan Form"
+  if (isDemo && demoType === "Loan Form") {
+    toast.success("Loading Loan Form demo data...");
+    return await getLoanFormDemoData();
+  }
+
   try {
     const formData = new FormData();
 

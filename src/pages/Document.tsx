@@ -19,7 +19,13 @@ import { ChevronLeft } from "lucide-react";
 const Document = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { file, fileItem, fileObjectUrl } = location.state || {};
+  const {
+    file,
+    fileItem,
+    fileObjectUrl,
+    isDemo = false,
+    demoType = "",
+  } = location.state || {};
 
   const [files, setFiles] = useState<FileItem[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
@@ -63,8 +69,8 @@ const Document = () => {
       setIsProcessing(true);
       setProcessingError(null);
       try {
-        // Call the actual API to process the document
-        const response = await processDocument(file);
+        // Call the actual API to process the document, passing demo flags if needed
+        const response = await processDocument(file, null, isDemo, demoType);
         console.log("Document processing response:", response);
 
         // Set the document data from the API response
@@ -120,7 +126,7 @@ const Document = () => {
     };
 
     processUploadedDocument();
-  }, [file, fileItem, fileObjectUrl, navigate]);
+  }, [file, fileItem, fileObjectUrl, navigate, isDemo, demoType]);
 
   const handleFileSelect = (file: FileItem) => {
     setSelectedFile(file);

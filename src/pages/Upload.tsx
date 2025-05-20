@@ -5,11 +5,15 @@ import FileUploader from "@/components/FileUploader";
 import { toast } from "sonner";
 import { FileItem } from "@/components/Sidebar";
 
-const exampleFiles: { name: string; type: string }[] = [
-  { name: "Invoice", type: "Tables, Multi-column" },
-  { name: "Lab Report", type: "Medical, Images" },
-  { name: "Loan Form", type: "Forms, Checkboxes" },
-  { name: "Performance Charts", type: "Charts, Reading Order" },
+const exampleFiles: { id: string; name: string; type: string }[] = [
+  { id: "invoice", name: "Invoice", type: "Tables, Multi-column" },
+  { id: "lab-report", name: "Lab Report", type: "Medical, Images" },
+  { id: "loan-form", name: "Loan Form", type: "Forms, Checkboxes" },
+  {
+    id: "performance-charts",
+    name: "Performance Charts",
+    type: "Charts, Reading Order",
+  },
 ];
 
 const Upload = () => {
@@ -68,6 +72,65 @@ const Upload = () => {
     }
   };
 
+  const handleExampleFileClick = async (file: {
+    id: string;
+    name: string;
+    type: string;
+  }) => {
+    setIsUploading(true);
+
+    try {
+      // Handle "Loan Form" example specifically
+      if (file.name === "Loan Form") {
+        // Use demo image for "Loan Form"
+        const demoImageUrl = "/loan-form-sample.jpg";
+
+        // Create file item for sidebar
+        const fileItem: FileItem = {
+          id: file.id,
+          name: file.name,
+          type: file.type,
+          thumbnail: demoImageUrl,
+        };
+
+        toast.success(
+          "Loading Loan Form example. This will use demo data without making API calls."
+        );
+
+        // Create a minimal File object to pass to the document page
+        // Note: This isn't a real file, but it provides the required interface
+        const dummyFile = new File([""], "loan-form-sample.jpg", {
+          type: "image/jpeg",
+        });
+
+        // Navigate to document page with demo flag
+        navigate("/document", {
+          state: {
+            file: dummyFile,
+            fileItem,
+            fileObjectUrl: demoImageUrl,
+            isDemo: true,
+            demoType: file.name,
+          },
+        });
+      } else {
+        // For other examples we can implement similar mock data
+        toast.info(
+          "Example file demo is only available for 'Loan Form' at this time."
+        );
+        setIsUploading(false);
+      }
+    } catch (error) {
+      console.error("Error loading example file:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to load example file. Please try again."
+      );
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <Header />
@@ -103,6 +166,7 @@ const Upload = () => {
                 <div
                   key={index}
                   className="border rounded-lg p-4 hover:border-primary hover:bg-muted/50 transition-all cursor-pointer"
+                  onClick={() => handleExampleFileClick(file)}
                 >
                   <h4 className="font-medium">{file.name}</h4>
                   <div className="flex flex-wrap gap-2 mt-2">

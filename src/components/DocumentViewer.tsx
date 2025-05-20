@@ -141,6 +141,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                   chunk.chunk_type
                 );
 
+                // Clamp box values to valid range (0-1)
+                const l = Math.max(0, Math.min(1, grounding.box.l));
+                const t = Math.max(0, Math.min(1, grounding.box.t));
+                const r = Math.max(0, Math.min(1, grounding.box.r));
+                const b = Math.max(0, Math.min(1, grounding.box.b));
+
                 return (
                   <div
                     key={`${chunk.chunk_id}-${gIndex}`}
@@ -159,10 +165,10 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                         : "border-green-400/60 hover:border-primary hover:bg-primary/5"
                     )}
                     style={{
-                      left: `${grounding.box.l * 100}%`,
-                      top: `${grounding.box.t * 100}%`,
-                      width: `${(grounding.box.r - grounding.box.l) * 100}%`,
-                      height: `${(grounding.box.b - grounding.box.t) * 100}%`,
+                      left: `${l * 100}%`,
+                      top: `${t * 100}%`,
+                      width: `${(r - l) * 100}%`,
+                      height: `${(b - t) * 100}%`,
                       zIndex: highlightedChunkId === chunk.chunk_id ? 10 : 5,
                     }}
                   >
@@ -172,7 +178,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
                     {(highlightedChunkId === chunk.chunk_id ||
                       hoverChunkId === chunk.chunk_id) && (
-                      <div className="absolute bottom-full left-0 mb-1 p-2 bg-black/80 text-white text-xs rounded pointer-events-none whitespace-nowrap">
+                      <div className="absolute bottom-full left-0 mb-1 p-2 bg-black/80 text-white text-xs rounded pointer-events-none whitespace-nowrap max-w-[250px] overflow-hidden text-ellipsis">
                         {figureNumber
                           ? figureNumber + ": "
                           : `${chunkIndex + 1}-${chunk.chunk_type}: `}

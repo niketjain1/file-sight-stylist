@@ -14,9 +14,11 @@ import {
   FileDown,
   MessageSquare,
   FileText,
+  Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { Markdown } from "@/components/ui/markdown";
 
 interface DocumentContentProps {
   chunks: DocumentChunk[];
@@ -53,10 +55,11 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<string>("parsed");
+  const [viewMode, setViewMode] = useState<"blocks" | "combined">("blocks");
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([
-    "What is the complete sentence displayed in the document image?",
-    "Which characters from the English alphabet are present in the document?",
-    "What symbols and numbers are included in the document's content?",
+    "What information is included in this loan application?",
+    "What is the property address?",
+    "What is the loan amount?",
   ]);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -218,39 +221,89 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
 
     return (
       <div className="space-y-4">
-        {chunks.map((chunk, index) => (
-          <div
-            key={chunk.chunk_id}
-            ref={selectedChunkId === chunk.chunk_id ? selectedChunkRef : null}
-            className={cn(
-              "p-3 rounded-md border cursor-pointer transition-all",
-              selectedChunkId === chunk.chunk_id
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50 hover:bg-muted/50"
-            )}
-            onClick={() => onChunkSelect(chunk.chunk_id)}
-          >
-            <div className="flex justify-between items-start mb-1">
-              <span className="text-xs text-muted-foreground">
-                {chunk.chunk_type === "figure"
-                  ? `Figure ${index + 1}`
-                  : `${index + 1} - ${chunk.chunk_type}`}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  copyToClipboard(chunk.text);
-                }}
-              >
-                <Copy className="h-3 w-3" />
-              </Button>
-            </div>
-            <p className="whitespace-pre-wrap break-words">{chunk.text}</p>
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={viewMode === "blocks" ? "default" : "outline"}
+              onClick={() => setViewMode("blocks")}
+            >
+              <Layers className="h-4 w-4 mr-1" />
+              Content Blocks
+            </Button>
+            <Button
+              size="sm"
+              variant={viewMode === "combined" ? "default" : "outline"}
+              onClick={() => setViewMode("combined")}
+            >
+              <FileText className="h-4 w-4 mr-1" />
+              Combined View
+            </Button>
           </div>
-        ))}
+          {markdown && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => downloadAsText(markdown, "document-extraction.md")}
+            >
+              <FileDown className="h-4 w-4 mr-1" />
+              Download
+            </Button>
+          )}
+        </div>
+
+        {viewMode === "combined" && markdown && (
+          <div className="p-4 rounded-md border">
+            <Markdown content={markdown} />
+          </div>
+        )}
+
+        {viewMode === "blocks" && (
+          <div className="space-y-4">
+            {chunks.map((chunk, index) => (
+              <div
+                key={chunk.chunk_id}
+                ref={
+                  selectedChunkId === chunk.chunk_id ? selectedChunkRef : null
+                }
+                className={cn(
+                  "p-3 rounded-md border cursor-pointer transition-all",
+                  selectedChunkId === chunk.chunk_id
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50 hover:bg-muted/50"
+                )}
+                onClick={() => onChunkSelect(chunk.chunk_id)}
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                    {chunk.chunk_type === "figure"
+                      ? `Figure ${index + 1}`
+                      : `${index + 1} - ${chunk.chunk_type}`}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyToClipboard(chunk.text);
+                    }}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div className="whitespace-pre-wrap break-words mt-3">
+                  <Markdown content={chunk.text} />
+                </div>
+                {chunk.grounding && chunk.grounding.length > 0 && (
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    Located on page {chunk.grounding[0].page + 1}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
@@ -298,7 +351,11 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
                     : "bg-muted"
                 )}
               >
-                {msg.content}
+                {msg.role === "assistant" ? (
+                  <Markdown content={msg.content} />
+                ) : (
+                  msg.content
+                )}
               </div>
             ))
           )}
@@ -357,7 +414,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
             }}
           >
             <FileText className="h-4 w-4 mr-2" />
-            Parse Document
+            Document Content
           </Button>
           <Button
             variant={activeTab === "chat" ? "default" : "outline"}
