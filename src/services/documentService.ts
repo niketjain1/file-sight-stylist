@@ -56,7 +56,7 @@ export interface ChatResponse {
 
 // Define API endpoints
 const BACKEND_ENABLED = true; // Always use the backend
-const BACKEND_URL = "http://localhost:5000/api/landing";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const DIRECT_API_BASE_URL = "https://api.va.landing.ai";
 const API_PATH = "/v1/tools/agentic-document-analysis";
 
