@@ -1,0 +1,117 @@
+{
+  "markdown": "## Section 4: Loan and Property Information\n\nThis section asks about the loan’s purpose and the property you... <!-- text, from page 0 (l=0.051,t=0.046,r=0.920,b=0.066), with ID c592517e-7572-47bd-8941-7d4e834d46d5 -->\n\n### Loan and Property Information\n\n- **Loan Amount**: $100000\n\n#### Loan Purpose\n- [x] Purchase\n- [ ] Refinance\n- [ ] Other (specify) _______\n\n#### Property Address\n- **Street**: 1566 NE 174th St\n- **City**: North Miami Beach\n- **State**: FL\n- **ZIP**: 33162\n- **Unit #**: _______\n- **County**: Miami Dade\n\n#### Number of Units\n- **Number of Units**: 1\n\n#### Property Value\n- **Property Value**: $ _______\n\n#### Occupancy\n- [x] Primary Residence\n- [ ] Second Home\n- [ ] Investment Property\n- **FHA Secondary Residence**: [ ]\n\n#### Mixed-Use Property\n- If you will occupy the property, will you set aside space within the property to operate your own business? (e.g., daycare facility, medical office, beauty/barber shop)\n  - [x] NO\n  - [ ] YES\n\n#### Manufactured Home\n- Is the property a manufactured home? (e.g., a factory built dwelling built on a permanent chassis)\n  - [x] NO\n  - [ ] YES <!-- form, from page 0 (l=0.051,t=0.095,r=0.941,b=0.259), with ID e704322c-17fb-444c-8430-b5b769aa4178 -->\n\n## Other New Mortgage Loans on the Property You are Buying or Refinancing\n\n- [ ] Does not apply\n\n### Table of Mortgage Loan Details\n\n<table>\n  <tr>\n    <th>Creditor Name</th>\n    <th>Lien Type</th>\n    <th>Monthly Payment</th>\n    <th>Loan Amount/Amount to be Drawn</th>\n    <th>Credit Limit (if applicable)</th>\n  </tr>\n  <tr>\n    <td>ABC Mortgage</td>\n    <td>[x] First Lien [ ] Subordinate Lien</td>\n    <td>$ 2000</td>\n    <td>$ 173000</td>\n    <td>$ NA</td>\n  </tr>\n  <tr>\n    <td></td>\n    <td>[ ] First Lien [ ] Subordinate Lien</td>\n    <td>$</td>\n    <td>$</td>\n    <td>$</td>\n  </tr>\n</table> <!-- form, from page 0 (l=0.051,t=0.300,r=0.939,b=0.395), with ID 68180839-b487-4344-8a4b-abd3ed53e6a9 -->\n\n## Rental Income on the Property You Want to Purchase\n\n### For Purchase Only\n- [x] Does not apply\n\n### Complete if the property is a 2-4 Unit Primary Residence or an Investment Property\n\n| Description | Amount |\n|-------------|--------|\n| Expected Monthly Rental Income | $ |\n| **For LENDER to calculate:** Expected Net Monthly Rental Income | $ | <!-- form, from page 0 (l=0.051,t=0.431,r=0.940,b=0.509), with ID 2939bab7-c9a3-4fd5-a5cc-67c321c93cde -->\n\n## 4d. Gifts or Grants You Have Been Given or Will Receive for this Loan\n\n- [x] Does not apply\n\nInclude all gifts and grants below. Under Source, choose from the sources listed here:\n\n- Community Nonprofit\n- Employer\n- Federal Agency\n- Local Agency\n- Relative\n- Religious Nonprofit\n- State Agency\n- Unmarried Partner\n- Lender\n- Other\n\n### Asset Information\n\n<table>\n  <tr>\n    <th>Asset Type</th>\n    <th>Deposited/Not Deposited</th>\n    <th>Source - use list above</th>\n    <th>Cash or Market Value</th>\n  </tr>\n  <tr>\n    <td>Cash Gift, Gift of Equity, Grant</td>\n    <td>[ ] Deposited [ ] Not Deposited</td>\n    <td></td>\n    <td>$</td>\n  </tr>\n  <tr>\n    <td>Cash Gift, Gift of Equity, Grant</td>\n    <td>[ ] Deposited [ ] Not Deposited</td>\n    <td></td>\n    <td>$</td>\n  </tr>\n</table> <!-- form, from page 0 (l=0.050,t=0.545,r=0.938,b=0.674), with ID 0ec53d00-fc64-4647-84d6-7b30e8ffc074 -->\n\n## Borrower Name: <!-- text, from page 0 (l=0.052,t=0.911,r=0.160,b=0.922), with ID f8865aaf-91f6-4b11-8304-807bedcae1bd -->\n\n### Uniform Residential Loan Application\n\n- **Freddie Mac Form 65**\n- **Fannie Mae Form 1003**\n\n*Effective 1/2021* <!-- page_footer, from page 0 (l=0.052,t=0.923,r=0.307,b=0.955), with ID 7833c8f4-fe65-4a54-b8c7-b69eae44c1cd -->",
+  "chunks": [
+    {
+      "text": "## Section 4: Loan and Property Information\n\nThis section asks about the loan’s purpose and the property you...",
+      "grounding": [
+        {
+          "box": {
+            "l": 0.05125,
+            "t": 0.04631884057971014,
+            "r": 0.9199999999999999,
+            "b": 0.0656183574879227
+          },
+          "page": 0
+        }
+      ],
+      "chunk_type": "text",
+      "chunk_id": "c592517e-7572-47bd-8941-7d4e834d46d5"
+    },
+    {
+      "text": "### Loan and Property Information\n\n- **Loan Amount**: $100000\n\n#### Loan Purpose\n- [x] Purchase\n- [ ] Refinance\n- [ ] Other (specify) _______\n\n#### Property Address\n- **Street**: 1566 NE 174th St\n- **City**: North Miami Beach\n- **State**: FL\n- **ZIP**: 33162\n- **Unit #**: _______\n- **County**: Miami Dade\n\n#### Number of Units\n- **Number of Units**: 1\n\n#### Property Value\n- **Property Value**: $ _______\n\n#### Occupancy\n- [x] Primary Residence\n- [ ] Second Home\n- [ ] Investment Property\n- **FHA Secondary Residence**: [ ]\n\n#### Mixed-Use Property\n- If you will occupy the property, will you set aside space within the property to operate your own business? (e.g., daycare facility, medical office, beauty/barber shop)\n  - [x] NO\n  - [ ] YES\n\n#### Manufactured Home\n- Is the property a manufactured home? (e.g., a factory built dwelling built on a permanent chassis)\n  - [x] NO\n  - [ ] YES",
+      "grounding": [
+        {
+          "box": {
+            "l": 0.05125,
+            "t": 0.09456763285024154,
+            "r": 0.9412499999999999,
+            "b": 0.25861352657004827
+          },
+          "page": 0
+        }
+      ],
+      "chunk_type": "form",
+      "chunk_id": "e704322c-17fb-444c-8430-b5b769aa4178"
+    },
+    {
+      "text": "## Other New Mortgage Loans on the Property You are Buying or Refinancing\n\n- [ ] Does not apply\n\n### Table of Mortgage Loan Details\n\n<table>\n  <tr>\n    <th>Creditor Name</th>\n    <th>Lien Type</th>\n    <th>Monthly Payment</th>\n    <th>Loan Amount/Amount to be Drawn</th>\n    <th>Credit Limit (if applicable)</th>\n  </tr>\n  <tr>\n    <td>ABC Mortgage</td>\n    <td>[x] First Lien [ ] Subordinate Lien</td>\n    <td>$ 2000</td>\n    <td>$ 173000</td>\n    <td>$ NA</td>\n  </tr>\n  <tr>\n    <td></td>\n    <td>[ ] First Lien [ ] Subordinate Lien</td>\n    <td>$</td>\n    <td>$</td>\n    <td>$</td>\n  </tr>\n</table>",
+      "grounding": [
+        {
+          "box": {
+            "l": 0.05125,
+            "t": 0.3001074879227053,
+            "r": 0.93875,
+            "b": 0.39467512077294686
+          },
+          "page": 0
+        }
+      ],
+      "chunk_type": "form",
+      "chunk_id": "68180839-b487-4344-8a4b-abd3ed53e6a9"
+    },
+    {
+      "text": "## Rental Income on the Property You Want to Purchase\n\n### For Purchase Only\n- [x] Does not apply\n\n### Complete if the property is a 2-4 Unit Primary Residence or an Investment Property\n\n| Description | Amount |\n|-------------|--------|\n| Expected Monthly Rental Income | $ |\n| **For LENDER to calculate:** Expected Net Monthly Rental Income | $ |",
+      "grounding": [
+        {
+          "box": {
+            "l": 0.05125,
+            "t": 0.4313442028985507,
+            "r": 0.94,
+            "b": 0.5085422705314009
+          },
+          "page": 0
+        }
+      ],
+      "chunk_type": "form",
+      "chunk_id": "2939bab7-c9a3-4fd5-a5cc-67c321c93cde"
+    },
+    {
+      "text": "## 4d. Gifts or Grants You Have Been Given or Will Receive for this Loan\n\n- [x] Does not apply\n\nInclude all gifts and grants below. Under Source, choose from the sources listed here:\n\n- Community Nonprofit\n- Employer\n- Federal Agency\n- Local Agency\n- Relative\n- Religious Nonprofit\n- State Agency\n- Unmarried Partner\n- Lender\n- Other\n\n### Asset Information\n\n<table>\n  <tr>\n    <th>Asset Type</th>\n    <th>Deposited/Not Deposited</th>\n    <th>Source - use list above</th>\n    <th>Cash or Market Value</th>\n  </tr>\n  <tr>\n    <td>Cash Gift, Gift of Equity, Grant</td>\n    <td>[ ] Deposited [ ] Not Deposited</td>\n    <td></td>\n    <td>$</td>\n  </tr>\n  <tr>\n    <td>Cash Gift, Gift of Equity, Grant</td>\n    <td>[ ] Deposited [ ] Not Deposited</td>\n    <td></td>\n    <td>$</td>\n  </tr>\n</table>",
+      "grounding": [
+        {
+          "box": {
+            "l": 0.049999999999999996,
+            "t": 0.5452113526570047,
+            "r": 0.9375,
+            "b": 0.6735531400966183
+          },
+          "page": 0
+        }
+      ],
+      "chunk_type": "form",
+      "chunk_id": "0ec53d00-fc64-4647-84d6-7b30e8ffc074"
+    },
+    {
+      "text": "## Borrower Name:",
+      "grounding": [
+        {
+          "box": {
+            "l": 0.0525,
+            "t": 0.9109371980676327,
+            "r": 0.15999999999999998,
+            "b": 0.9215519323671497
+          },
+          "page": 0
+        }
+      ],
+      "chunk_type": "text",
+      "chunk_id": "f8865aaf-91f6-4b11-8304-807bedcae1bd"
+    },
+    {
+      "text": "### Uniform Residential Loan Application\n\n- **Freddie Mac Form 65**\n- **Fannie Mae Form 1003**\n\n*Effective 1/2021*",
+      "grounding": [
+        {
+          "box": {
+            "l": 0.0525,
+            "t": 0.9225169082125604,
+            "r": 0.3075,
+            "b": 0.9553260869565217
+          },
+          "page": 0
+        }
+      ],
+      "chunk_type": "page_footer",
+      "chunk_id": "7833c8f4-fe65-4a54-b8c7-b69eae44c1cd"
+    }
+  ]
+}
