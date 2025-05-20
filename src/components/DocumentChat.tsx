@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare } from "lucide-react";
+import { Send, MessageSquare, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Markdown } from "@/components/ui/markdown";
@@ -14,6 +14,7 @@ interface DocumentChatProps {
     documentData: DocumentResponse
   ) => Promise<ChatResponse>;
   initialSuggestedQuestions?: string[];
+  isLoadingQuestions?: boolean;
 }
 
 const DocumentChat: React.FC<DocumentChatProps> = ({
@@ -24,6 +25,7 @@ const DocumentChat: React.FC<DocumentChatProps> = ({
     "Can you summarize the main points?",
     "What are the key details in this document?",
   ],
+  isLoadingQuestions = false,
 }) => {
   const [chatMessage, setChatMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<
@@ -110,11 +112,45 @@ const DocumentChat: React.FC<DocumentChatProps> = ({
   };
 
   const handleSuggestedQuestionClick = (question: string) => {
-    setChatMessage(question);
-    // Focus the input field
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    // Auto-send the suggested question
+    setChatMessages((prev) => [...prev, { role: "user", content: question }]);
+    setIsSendingMessage(true);
+
+    onSendChatMessage(question, documentData)
+      .then((response) => {
+        if (response && response.message) {
+          setChatMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: response.message },
+          ]);
+
+          // Update suggested questions if available
+          if (
+            response.suggestedQuestions &&
+            response.suggestedQuestions.length > 0
+          ) {
+            setSuggestedQuestions(response.suggestedQuestions);
+          }
+        } else if (response && response.error) {
+          setChatMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: `Error: ${response.error}` },
+          ]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error sending suggested question:", error);
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: "An error occurred. Please try again.",
+          },
+        ]);
+      })
+      .finally(() => {
+        setIsSendingMessage(false);
+      });
   };
 
   return (
@@ -136,15 +172,25 @@ const DocumentChat: React.FC<DocumentChatProps> = ({
 
             <div className="w-full max-w-md space-y-3">
               <h4 className="text-sm font-medium mb-2">Suggested questions</h4>
-              {suggestedQuestions.map((question, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => handleSuggestedQuestionClick(question)}
-                  className="p-3 bg-muted rounded-md cursor-pointer hover:bg-muted/80 transition-colors text-sm"
-                >
-                  {question}
+              {isLoadingQuestions ? (
+                // Spinner loader for loading questions
+                <div className="flex flex-col items-center py-6 space-y-4">
+                  <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                  <p className="text-sm text-muted-foreground">
+                    Generating questions...
+                  </p>
                 </div>
-              ))}
+              ) : (
+                suggestedQuestions.map((question, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => handleSuggestedQuestionClick(question)}
+                    className="p-3 bg-muted rounded-md cursor-pointer hover:bg-muted/80 transition-colors text-sm"
+                  >
+                    {question}
+                  </div>
+                ))
+              )}
             </div>
           </div>
         ) : (

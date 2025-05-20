@@ -15,6 +15,7 @@ import {
   FileText,
   Layers,
   Send,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Markdown } from "@/components/ui/markdown";
@@ -64,6 +65,11 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
   >([]);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [copyingChunks, setCopyingChunks] = useState<Record<string, boolean>>(
+    {}
+  );
 
   useEffect(() => {
     if (selectedChunkId && selectedChunkRef.current) {
@@ -90,11 +96,58 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
     }
   }, [chatMessages]);
 
-  const copyToClipboard = (text: string) => {
+  useEffect(() => {
+    // When chat becomes active or document data changes, stop the loading
+    if (isChatActive || chatMessages.length > 0) {
+      setIsGeneratingQuestions(false);
+    }
+  }, [isChatActive, documentData, chatMessages.length]);
+
+  const copyToClipboard = (text: string, chunkId?: string) => {
+    // More comprehensive markdown cleaning for plain text
+    const plainText = text
+      // Remove markdown headings, bold, italic, strikethrough, code, links, and images
+      .replace(/[#*_~`[\]()]/g, "")
+      // Handle markdown links by keeping only the text part
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      // Convert markdown lists to plain text with proper spacing
+      .replace(/^\s*[-*+]\s+/gm, "• ")
+      .replace(/^\s*\d+\.\s+/gm, "")
+      // Handle tables by preserving the text but removing table formatting
+      .replace(/\|/g, " ")
+      // Remove code blocks and their language specifiers
+      .replace(/```[\s\S]*?```/g, "")
+      // Clean up excessive whitespace
+      .replace(/\n{3,}/g, "\n\n")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+
+    if (chunkId) {
+      setCopyingChunks((prev) => ({ ...prev, [chunkId]: true }));
+    } else {
+      setIsCopying(true);
+    }
+
     navigator.clipboard
-      .writeText(text)
-      .then(() => toast.success("Copied to clipboard!"))
-      .catch(() => toast.error("Failed to copy text"));
+      .writeText(plainText)
+      .then(() => {
+        toast.success("Copied to clipboard!");
+        if (chunkId) {
+          setTimeout(() => {
+            setCopyingChunks((prev) => ({ ...prev, [chunkId]: false }));
+          }, 2000);
+        } else {
+          setTimeout(() => setIsCopying(false), 2000);
+        }
+      })
+      .catch(() => {
+        toast.error("Failed to copy text");
+        if (chunkId) {
+          setCopyingChunks((prev) => ({ ...prev, [chunkId]: false }));
+        } else {
+          setIsCopying(false);
+        }
+      });
   };
 
   const downloadAsText = (content: string, filename: string) => {
@@ -109,6 +162,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
 
   const handleChatButtonClick = () => {
     if (onChatWithDocument) {
+      setIsGeneratingQuestions(true);
       onChatWithDocument();
     }
   };
@@ -298,10 +352,15 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
                     className="h-6 w-6"
                     onClick={(e) => {
                       e.stopPropagation();
-                      copyToClipboard(chunk.text);
+                      copyToClipboard(chunk.text, chunk.chunk_id);
                     }}
+                    disabled={copyingChunks[chunk.chunk_id]}
                   >
-                    <Copy className="h-3 w-3" />
+                    {copyingChunks[chunk.chunk_id] ? (
+                      <Check className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
                   </Button>
                 </div>
                 <div className="whitespace-pre-wrap break-words mt-3">
@@ -343,6 +402,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
             onClick={() => {
               setActiveTab("chat");
               if (!isChatActive && onChatWithDocument) {
+                setIsGeneratingQuestions(true);
                 onChatWithDocument();
               }
             }}
@@ -356,9 +416,13 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
           variant="ghost"
           size="icon"
           onClick={() => copyToClipboard(markdown)}
-          disabled={isProcessing || !markdown}
+          disabled={isProcessing || !markdown || isCopying}
         >
-          <Copy className="h-4 w-4" />
+          {isCopying ? (
+            <Check className="h-4 w-4 text-green-500" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
         </Button>
       </div>
 
@@ -372,6 +436,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
                 documentData={documentData}
                 onSendChatMessage={onSendChatMessage}
                 initialSuggestedQuestions={suggestedQuestions}
+                isLoadingQuestions={isGeneratingQuestions}
               />
             )}
           </div>
