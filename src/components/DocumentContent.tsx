@@ -336,7 +336,8 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
                   "p-3 rounded-md border cursor-pointer transition-all",
                   selectedChunkId === chunk.chunk_id
                     ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50 hover:bg-muted/50"
+                    : "border-border hover:border-primary/50 hover:bg-muted/50",
+                  chunk.chunk_type === "table" && "overflow-auto"
                 )}
                 onClick={() => onChunkSelect(chunk.chunk_id)}
               >
@@ -344,7 +345,9 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
                   <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
                     {chunk.chunk_type === "figure"
                       ? `Figure ${index + 1}`
-                      : `${index + 1} - ${chunk.chunk_type}`}
+                      : chunk.chunk_type === "table" 
+                        ? `Table ${index + 1}`
+                        : `${index + 1} - ${chunk.chunk_type}`}
                   </span>
                   <Button
                     variant="ghost"
@@ -363,7 +366,10 @@ const DocumentContent: React.FC<DocumentContentProps> = ({
                     )}
                   </Button>
                 </div>
-                <div className="whitespace-pre-wrap break-words mt-3">
+                <div className={cn(
+                  "whitespace-pre-wrap break-words mt-3", 
+                  chunk.chunk_type === "table" && "min-w-[30rem]"
+                )}>
                   <Markdown content={chunk.text} />
                 </div>
                 {chunk.grounding && chunk.grounding.length > 0 && (

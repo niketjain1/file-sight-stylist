@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { MarkdownRenderer } from "markdown-react-renderer";
 import { cn } from "@/lib/utils";
+import DOMPurify from "dompurify";
 
 interface MarkdownProps extends React.HTMLAttributes<HTMLDivElement> {
   content: string;
@@ -51,7 +52,78 @@ const cleanMarkdown = (content: string): string => {
     .replace(/ </g, "<"); // Clean tag spacing
 };
 
+// Add CSS styles for HTML tables
+const tableStyles = `
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  table th {
+    background-color: hsl(var(--muted));
+    font-weight: 500;
+    text-align: left;
+    padding: 0.5rem 1rem;
+  }
+  
+  table td {
+    padding: 0.5rem 1rem;
+    border-top: 1px solid hsl(var(--border));
+  }
+  
+  table tr:hover {
+    background-color: hsl(var(--muted) / 0.5);
+  }
+  
+  table tbody tr:nth-child(odd) {
+    background-color: hsl(var(--muted) / 0.3);
+  }
+`;
+
 export function Markdown({ content, className, ...props }: MarkdownProps) {
+  // Process content to handle HTML tables before passing to MarkdownRenderer
+  const processedContent = useMemo(() => {
+    // First convert HTML tables to markdown tables
+    const contentWithTables = convertHtmlTableToMarkdown(content);
+
+    // Clean the markdown content
+    return cleanMarkdown(contentWithTables);
+  }, [content]);
+
+  // Check if content has HTML tables (both <table> and </table> tags)
+  const hasHtmlTables = useMemo(() => {
+    return content.includes("<table>") && content.includes("</table>");
+  }, [content]);
+
+  // For tables that might still be in HTML format, we'll use this as a fallback
+  const renderWithHtml = useMemo(() => {
+    // Only use this as fallback if the content contains HTML tables
+    if (hasHtmlTables) {
+      return { __html: DOMPurify.sanitize(content) };
+    }
+    return null;
+  }, [content, hasHtmlTables]);
+
+  // If content contains HTML tables, render with dangerouslySetInnerHTML
+  if (renderWithHtml) {
+    return (
+      <div
+        className={cn(
+          "prose dark:prose-invert max-w-none break-words",
+          className
+        )}
+        {...props}
+      >
+        <style>{tableStyles}</style>
+        <div dangerouslySetInnerHTML={renderWithHtml} />
+      </div>
+    );
+  }
+
+  // Otherwise use MarkdownRenderer
   return (
     <div
       className={cn(
@@ -61,7 +133,7 @@ export function Markdown({ content, className, ...props }: MarkdownProps) {
       {...props}
     >
       <MarkdownRenderer
-        markdown={content}
+        markdown={processedContent}
         components={{
           // Table styling
           table: (props) => (
