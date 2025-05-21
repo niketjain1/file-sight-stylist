@@ -93,6 +93,29 @@ const cleanMarkdownContent = (markdown: string): string => {
     .replace(/\n{3,}/g, "\n\n"); // Replace excessive newlines
 };
 
+// Helper function to process text for math expressions
+const processTextWithMath = (text: string): string => {
+  // Make sure we're not processing empty text
+  if (!text) return text;
+
+  // First, ensure there are spaces between text and math expressions
+  let processed = text
+    .replace(/(\S)\$/g, "$1 $") // Add space before $ if preceded by non-space
+    .replace(/\$(\S)/g, "$ $1"); // Add space after $ if followed by non-space
+
+  // Handle spaces around double-dollar signs for block math
+  processed = processed
+    .replace(/(\S)\$\$/g, "$1 $$")
+    .replace(/\$\$(\S)/g, "$$ $1");
+
+  // Handle cases where math expression is at the end of a sentence
+  processed = processed
+    .replace(/\$([^$]+)\$(\.)(\s|$)/g, "$ $1 $.$3")
+    .replace(/\$([^$]+)\$(,)(\s|$)/g, "$ $1 $,$3");
+
+  return processed;
+};
+
 // Get Demo Form Data for "Loan Form" example
 const getLoanFormDemoData = async (): Promise<ApiResponse> => {
   try {
@@ -195,16 +218,38 @@ export const processDocument = async (
         result.data.pageCount = maxPage + 1;
       }
 
+      // Process math expressions in markdown and chunks
+      if (result.data.markdown) {
+        result.data.markdown = processTextWithMath(result.data.markdown);
+      }
+
+      if (result.data.chunks) {
+        result.data.chunks = result.data.chunks.map((chunk) => {
+          if (chunk.text) {
+            chunk.text = processTextWithMath(chunk.text);
+          }
+          return chunk;
+        });
+      }
+
       return result;
     }
 
+    // Process math expressions in the response
+    const processedData = {
+      markdown: processTextWithMath(result.markdown || ""),
+      chunks: (result.chunks || []).map((chunk) => {
+        if (chunk.text) {
+          chunk.text = processTextWithMath(chunk.text);
+        }
+        return chunk;
+      }),
+      errors: result.errors || [],
+      pageCount: 1,
+    };
+
     return {
-      data: {
-        markdown: result.markdown || "",
-        chunks: result.chunks || [],
-        errors: result.errors || [],
-        pageCount: 1,
-      },
+      data: processedData,
     };
   } catch (error) {
     console.error("Error processing document:", error);
@@ -283,13 +328,33 @@ export const parseDocument = async (
         result.data.pageCount = maxPage + 1;
       }
 
+      // Process math expressions in markdown and chunks
+      if (result.data.markdown) {
+        result.data.markdown = processTextWithMath(result.data.markdown);
+      }
+
+      if (result.data.chunks) {
+        result.data.chunks = result.data.chunks.map((chunk) => {
+          if (chunk.text) {
+            chunk.text = processTextWithMath(chunk.text);
+          }
+          return chunk;
+        });
+      }
+
       return result;
     }
 
+    // Process math expressions in the response
     return {
       data: {
-        markdown: result.markdown || "",
-        chunks: result.chunks || [],
+        markdown: processTextWithMath(result.markdown || ""),
+        chunks: (result.chunks || []).map((chunk) => {
+          if (chunk.text) {
+            chunk.text = processTextWithMath(chunk.text);
+          }
+          return chunk;
+        }),
         errors: result.errors || [],
         pageCount: 1,
       },
@@ -331,10 +396,13 @@ export const chatWithDocument = async (
     const result = await response.json();
     console.log("Chat API Response:", result);
 
+    // Process math expressions in the response message and suggested questions
     return {
-      message: result.message || "",
+      message: processTextWithMath(result.message || ""),
       sourceChunks: result.sourceChunks || [],
-      suggestedQuestions: result.suggestedQuestions || [],
+      suggestedQuestions: (result.suggestedQuestions || []).map(
+        processTextWithMath
+      ),
     };
   } catch (error) {
     console.error("Error chatting with document:", error);
@@ -380,7 +448,8 @@ export const getSuggestedQuestions = async (
     const result = await response.json();
     console.log("Suggested Questions API Response:", result);
 
-    return result.questions || [];
+    // Process math expressions in suggested questions
+    return (result.questions || []).map(processTextWithMath);
   } catch (error) {
     console.error("Error getting suggested questions:", error);
 

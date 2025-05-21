@@ -2,6 +2,8 @@ import React, { useMemo } from "react";
 import { MarkdownRenderer } from "markdown-react-renderer";
 import { cn } from "@/lib/utils";
 import DOMPurify from "dompurify";
+import "katex/dist/katex.min.css";
+import katex from "katex";
 
 interface MarkdownProps extends React.HTMLAttributes<HTMLDivElement> {
   content: string;
@@ -52,6 +54,45 @@ const cleanMarkdown = (content: string): string => {
     .replace(/ </g, "<"); // Clean tag spacing
 };
 
+// Function to process math expressions and convert to HTML
+const processMathExpressions = (content: string): string => {
+  // For inline math: $...$ (single dollar sign)
+  const inlineRegex = /\$([^$]+)\$/g;
+  // For block math: $$...$$ (double dollar sign)
+  const blockRegex = /\$\$([^$]+)\$\$/g;
+
+  // First handle block math
+  let processedContent = content.replace(blockRegex, (match, formula) => {
+    try {
+      const rendered = katex.renderToString(formula.trim(), {
+        displayMode: true,
+        throwOnError: false,
+      });
+      return `<div class="math-block">${rendered}</div>`;
+    } catch (error) {
+      console.error("KaTeX error rendering block formula:", error);
+      return match; // Return original on error
+    }
+  });
+
+  // Then handle inline math
+  processedContent = processedContent.replace(inlineRegex, (match, formula) => {
+    try {
+      const rendered = katex.renderToString(formula.trim(), {
+        displayMode: false,
+        throwOnError: false,
+      });
+      // Add a space character after inline math to ensure proper spacing
+      return `<span class="math-inline">${rendered}</span> `;
+    } catch (error) {
+      console.error("KaTeX error rendering inline formula:", error);
+      return match; // Return original on error
+    }
+  });
+
+  return processedContent;
+};
+
 // Add CSS styles for HTML tables
 const tableStyles = `
   table {
@@ -81,33 +122,86 @@ const tableStyles = `
   table tbody tr:nth-child(odd) {
     background-color: hsl(var(--muted) / 0.3);
   }
+  
+  .math-block {
+    overflow-x: auto;
+    margin: 1rem 0;
+    padding: 0.5rem 0;
+  }
+  
+  .math-inline {
+    display: inline-block;
+    margin: 0 0.15rem;
+    vertical-align: middle;
+  }
+  
+  /* Add styling for KaTeX elements */
+  .katex-display {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5rem 0;
+    margin: 0.5rem 0;
+  }
+  
+  /* Fix spacing around inline math */
+  .katex {
+    text-rendering: auto;
+    font-size: 1.1em;
+  }
+  
+  /* Ensure proper line height with inline math */
+  .katex-html {
+    white-space: normal;
+  }
 `;
 
 export function Markdown({ content, className, ...props }: MarkdownProps) {
-  // Process content to handle HTML tables before passing to MarkdownRenderer
+  // Check if content has LaTeX math expressions using a simpler pattern
+  const hasMathExpressions = useMemo(() => {
+    const dollarPattern = content.includes("$");
+    if (!dollarPattern) return false;
+
+    // More detailed check if we found a dollar sign
+    return (
+      /\$((?!\$).)+\$/g.test(content) || /\$\$((?!\$\$).)+\$\$/g.test(content)
+    );
+  }, [content]);
+
+  // Process content with tables and math
   const processedContent = useMemo(() => {
-    // First convert HTML tables to markdown tables
-    const contentWithTables = convertHtmlTableToMarkdown(content);
+    // Process math expressions first
+    let result = content;
+
+    if (hasMathExpressions) {
+      result = processMathExpressions(result);
+    }
+
+    // Then convert HTML tables to markdown tables
+    result = convertHtmlTableToMarkdown(result);
 
     // Clean the markdown content
-    return cleanMarkdown(contentWithTables);
-  }, [content]);
+    return cleanMarkdown(result);
+  }, [content, hasMathExpressions]);
 
-  // Check if content has HTML tables (both <table> and </table> tags)
-  const hasHtmlTables = useMemo(() => {
-    return content.includes("<table>") && content.includes("</table>");
-  }, [content]);
+  // Check if content has HTML (tables or math)
+  const hasHtml = useMemo(() => {
+    return (
+      processedContent.includes("<table>") ||
+      processedContent.includes("</table>") ||
+      processedContent.includes('<div class="math-block">') ||
+      processedContent.includes('<span class="math-inline">')
+    );
+  }, [processedContent]);
 
-  // For tables that might still be in HTML format, we'll use this as a fallback
+  // For content that has HTML, we'll use the fallback renderer
   const renderWithHtml = useMemo(() => {
-    // Only use this as fallback if the content contains HTML tables
-    if (hasHtmlTables) {
-      return { __html: DOMPurify.sanitize(content) };
+    if (hasHtml) {
+      return { __html: DOMPurify.sanitize(processedContent) };
     }
     return null;
-  }, [content, hasHtmlTables]);
+  }, [processedContent, hasHtml]);
 
-  // If content contains HTML tables, render with dangerouslySetInnerHTML
+  // If content contains HTML, render with dangerouslySetInnerHTML
   if (renderWithHtml) {
     return (
       <div
